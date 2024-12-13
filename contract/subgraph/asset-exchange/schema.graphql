@@ -1,0 +1,56 @@
+type BoxBought @entity(immutable: true) {
+  id: Bytes!
+  boxId: BigInt! # uint256
+  buyer: Bytes! # address
+  tokenInfoIndex: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BoxCreated @entity(immutable: true) {
+  id: Bytes!
+  boxId: BigInt! # uint256
+  owner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferAccepted @entity(immutable: true) {
+  id: Bytes!
+  offerId: BigInt! # uint256
+  boxId: BigInt! # uint256
+  boxOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferCanceled @entity(immutable: true) {
+  id: Bytes!
+  offerId: BigInt! # uint256
+  offerer: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferCreated @entity(immutable: true) {
+  id: Bytes!
+  offerId: BigInt! # uint256
+  boxId: BigInt! # uint256
+  offerer: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferUpdated @entity(immutable: true) {
+  id: Bytes!
+  offerId: BigInt! # uint256
+  offerer: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
