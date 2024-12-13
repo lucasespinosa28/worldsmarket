@@ -10,7 +10,7 @@ dataSources:
     source:
       address: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
       abi: Dai
-      startBlock: 21305701
+      startBlock: 21395690
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -30,3 +30,4 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/dai.ts
+      

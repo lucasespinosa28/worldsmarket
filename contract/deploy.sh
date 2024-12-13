@@ -9,3 +9,5 @@ forge script script/FakeCoin.s.sol:FakeCoinScript --rpc-url $SHAPE_RPC --broadca
 
 forge script script/AssetExchange.s.sol:AssetExchangeScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY --via-ir
 forge script script/ContractOwnershipMarket.s.sol:ContractOwnershipMarketScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY --via-ir
+
+graph init --product hosted-service --from-contract 0x19e266FC1fc674e4C9baF7fFb2544a30eb789B0c --network shape-sepolia --abi /abis/ContractOwnershipMarket.json ContractOwnershipMarket

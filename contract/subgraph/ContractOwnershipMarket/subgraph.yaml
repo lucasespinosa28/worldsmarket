@@ -1,0 +1,38 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: ContractOwnershipMarket
+    network: shape-sepolia
+    source:
+      address: "0x19e266FC1fc674e4C9baF7fFb2544a30eb789B0c"
+      abi: ContractOwnershipMarket
+      startBlock: 7592500
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ContractListed
+        - ContractPurchased
+        - ListingActivated
+        - ListingCanceled
+        - OwnershipTransferred
+      abis:
+        - name: ContractOwnershipMarket
+          file: ./abis/ContractOwnershipMarket.json
+      eventHandlers:
+        - event: ContractListed(indexed address,indexed address,address,uint256)
+          handler: handleContractListed
+        - event: ContractPurchased(indexed address,indexed address,uint256)
+          handler: handleContractPurchased
+        - event: ListingActivated(indexed address)
+          handler: handleListingActivated
+        - event: ListingCanceled(indexed address)
+          handler: handleListingCanceled
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/contract-ownership-market.ts

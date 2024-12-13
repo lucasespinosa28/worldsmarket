@@ -1,0 +1,8 @@
+{
+  "shape-sepolia": {
+    "ContractOwnershipMarket": {
+      "address": "0x19e266FC1fc674e4C9baF7fFb2544a30eb789B0c",
+      "startBlock": 7592500
+    }
+  }
+}
