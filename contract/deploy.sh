@@ -8,9 +8,9 @@ forge script script/Potion.s.sol:PotionScript --rpc-url $SHAPE_RPC --broadcast -
 forge script script/FakeCoin.s.sol:FakeCoinScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY --via-ir
 
 forge script script/AssetExchange.s.sol:AssetExchangeScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY --via-ir
-forge script script/ContractOwnershipMarket.s.sol:ContractOwnershipMarketScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY --via-ir
+forge script script/ContractOwnershipMarket.s.sol:ContractOwnershipMarketScript --rpc-url $SHAPE_RPC --broadcast --private-key $PRIVATE_KEY
 
-graph init --from-contract 0x19e266FC1fc674e4C9baF7fFb2544a30eb789B0c --network shape-sepolia --abi ./abis/ContractOwnershipMarket.json ContractOwnershipMarket
+graph init --from-contract 0xbdF2124e85Df1df6Fc5a857556071633D9cc7019 --network shape-sepolia --abi ./abis/ContractOwnershipMarket.json contract_ownership_market
 graph init --from-contract 0x0680d7a6cBf31377063c5EEB99d1615b3a454483 --network shape-sepolia --abi ./abis/AssetExchange.json asset-exchange
 //subgraph/abis/ContractOwnershipMarket.json
 

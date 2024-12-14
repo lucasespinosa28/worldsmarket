@@ -1,0 +1,74 @@
+type ContractListed @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  owner: Bytes! # address
+  token: Bytes! # address
+  price: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ContractPurchased @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  buyer: Bytes! # address
+  price: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ListingActivated @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ListingCanceled @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferAccepted @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  offerer: Bytes! # address
+  offerPrice: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferCanceled @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  offerer: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OfferMade @entity(immutable: true) {
+  id: Bytes!
+  contractAddress: Bytes! # address
+  offerer: Bytes! # address
+  offerPrice: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

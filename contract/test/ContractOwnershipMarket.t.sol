@@ -6,101 +6,196 @@ import "../src/ContractOwnershipMarket.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MockERC20 is ERC20 {
-    constructor() ERC20("MockToken", "MTK") {
-        _mint(msg.sender, 1000 ether);
+    constructor() ERC20("MockToken", "MTK") {}
+
+    function mint(address to, uint256 amount) public {
+        _mint(to, amount);
     }
+}
+
+contract MockOwnable is Ownable {
+    constructor(address initialOwner) Ownable(initialOwner) {}
 }
 
 contract ContractOwnershipMarketTest is Test {
     ContractOwnershipMarket market;
     MockERC20 token;
-    address owner = address(0x1);
-    address buyer = address(0x2);
-    address offerer = address(0x3);
-    address contractAddress = address(0x4);
+    MockOwnable ownableContract;
+    address owner = address(1);
+    address buyer = address(2);
 
     function setUp() public {
-        token = new MockERC20();
+        vm.startPrank(owner);
         market = new ContractOwnershipMarket(owner);
+        token = new MockERC20();
+        ownableContract = new MockOwnable(owner);
+        vm.stopPrank();
 
-        // Transfer some tokens to buyer and offerer
-        token.transfer(buyer, 100 ether);
-        token.transfer(offerer, 100 ether);
-
-        // Simulate contract ownership
-        vm.prank(owner);
-        Ownable(contractAddress).transferOwnership(address(market));
+        vm.startPrank(buyer);
+        token.approve(address(market), type(uint256).max);
+        token.mint(buyer, 100 ether);
+        vm.stopPrank();
     }
 
     function testListContractForSale() public {
-        vm.prank(owner);
-        market.listContractForSale(contractAddress, address(token), 10 ether);
+        vm.startPrank(owner);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100 ether
+        );
 
-        (address listingOwner, address listingToken, uint256 listingPrice) = market.contractListings(contractAddress);
-        assertEq(listingOwner, owner);
-        assertEq(listingToken, address(token));
-        assertEq(listingPrice, 10 ether);
+        (address listedOwner, address listedToken, uint256 listedPrice) = market
+            .contractListings(address(ownableContract));
+        assertEq(listedOwner, owner);
+        assertEq(listedToken, address(token));
+        assertEq(listedPrice, 100 ether);
+        assertEq(market.isListingActive(address(ownableContract)), false);
+        vm.stopPrank();
     }
 
     function testActivateContractListing() public {
-        vm.prank(owner);
-        market.listContractForSale(contractAddress, address(token), 10 ether);
+        vm.startPrank(owner);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100 ether
+        );
+        ownableContract.transferOwnership(address(market));
+        market.activateContractListing(address(ownableContract));
 
-        vm.prank(owner);
-        market.activateContractListing(contractAddress);
+        assertTrue(market.isListingActive(address(ownableContract)));
+        vm.stopPrank();
+    }
 
-        assertTrue(market.isListingActive(contractAddress));
+    function testCancelContractListing() public {
+        vm.startPrank(owner);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100 ether
+        );
+        ownableContract.transferOwnership(address(market));
+        market.cancelContractListing(address(ownableContract));
+
+        (address listedOwner, , ) = market.contractListings(
+            address(ownableContract)
+        );
+        assertEq(listedOwner, address(0));
+        assertEq(market.isListingActive(address(ownableContract)), false);
+        assertEq(ownableContract.owner(), owner);
+        vm.stopPrank();
+    }
+
+    function testPurchaseListedContract() public {
+        vm.startPrank(owner);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100 ether
+        );
+        ownableContract.transferOwnership(address(market));
+        market.activateContractListing(address(ownableContract));
+        vm.stopPrank();
+
+        vm.startPrank(buyer);
+        token.approve(address(market), 100 ether);
+        market.purchaseListedContract(address(ownableContract));
+
+        assertEq(ownableContract.owner(), buyer);
+        assertEq(token.balanceOf(owner), 100 ether);
+        vm.stopPrank();
+    }
+
+    function testFailListContractNotOwner() public {
+        vm.prank(buyer);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100
+        );
     }
 
     function testMakeOffer() public {
-        vm.prank(owner);
-        market.listContractForSale(contractAddress, address(token), 10 ether);
+        vm.startPrank(owner);
+        market.listContractForSale(address(ownableContract), address(token), 100 * 10**18);
+        market.activateContractListing(address(ownableContract));
+        vm.stopPrank();
 
-        vm.prank(owner);
-        market.activateContractListing(contractAddress);
-
-        vm.prank(offerer);
-        market.makeOffer(contractAddress, 8 ether);
-
-        (address offererAddress, uint256 offerPrice) = market.contractOffers(contractAddress);
-        assertEq(offererAddress, offerer);
-        assertEq(offerPrice, 8 ether);
+        vm.startPrank(buyer);
+        market.makeOffer(address(ownableContract), 90 * 10**18);
+        (address buyerAddress, uint256 offerPrice) = market.contractOffers(address(ownableContract));
+        assertEq(buyerAddress, buyer);
+        assertEq(offerPrice, 90 * 10**18);
+        vm.stopPrank();
     }
 
     function testAcceptOffer() public {
-        vm.prank(owner);
-        market.listContractForSale(contractAddress, address(token), 10 ether);
+        vm.startPrank(owner);
+        market.listContractForSale(address(ownableContract), address(token), 100 * 10**18);
+        market.activateContractListing(address(ownableContract));
+        vm.stopPrank();
 
-        vm.prank(owner);
-        market.activateContractListing(contractAddress);
+        vm.startPrank(buyer);
+        token.approve(address(market), 90 * 10**18);
+        market.makeOffer(address(ownableContract), 90 * 10**18);
+        vm.stopPrank();
 
-        vm.prank(offerer);
-        market.makeOffer(contractAddress, 8 ether);
-
-        vm.prank(offerer);
-        token.approve(address(market), 8 ether);
-
-        vm.prank(owner);
-        market.acceptOffer(contractAddress);
-
-        assertEq(Ownable(contractAddress).owner(), offerer);
+        vm.startPrank(owner);
+        market.acceptOffer(address(ownableContract));
+        (address listingOwner,,) = market.contractListings(address(ownableContract));
+        assertEq(listingOwner, address(0));
+        assertFalse(market.isListingActive(address(ownableContract)));
+        vm.stopPrank();
     }
 
     function testCancelOffer() public {
+        vm.startPrank(owner);
+        market.listContractForSale(address(ownableContract), address(token), 100 * 10**18);
+        market.activateContractListing(address(ownableContract));
+        vm.stopPrank();
+
+        vm.startPrank(buyer);
+        market.makeOffer(address(ownableContract), 90 * 10**18);
+        market.cancelOffer(address(ownableContract));
+        (address buyerAddress,) = market.contractOffers(address(ownableContract));
+        assertEq(buyerAddress, address(0));
+        vm.stopPrank();
+    }
+
+    function testFailActivateContractNotOwner() public {
         vm.prank(owner);
-        market.listContractForSale(contractAddress, address(token), 10 ether);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100
+        );
 
+        vm.prank(buyer);
+        market.activateContractListing(address(ownableContract));
+    }
+
+    function testFailCancelContractNotOwner() public {
         vm.prank(owner);
-        market.activateContractListing(contractAddress);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100
+        );
 
-        vm.prank(offerer);
-        market.makeOffer(contractAddress, 8 ether);
+        vm.prank(buyer);
+        market.cancelContractListing(address(ownableContract));
+    }
 
-        vm.prank(offerer);
-        market.cancelOffer(contractAddress);
+    function testFailPurchaseInactiveContract() public {
+        vm.prank(owner);
+        market.listContractForSale(
+            address(ownableContract),
+            address(token),
+            100
+        );
 
-        (address offererAddress, uint256 offerPrice) = market.contractOffers(contractAddress);
-        assertEq(offererAddress, address(0));
-        assertEq(offerPrice, 0);
+        vm.prank(buyer);
+        market.purchaseListedContract(address(ownableContract));
     }
 }
