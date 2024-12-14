@@ -10,9 +10,15 @@ contract ContractOwnershipMarket is Ownable {
         address token;
         uint256 price;
     }
+
+    struct Offer {
+        address offerer;
+        uint256 offerPrice;
+    }
     uint256 public count = 0;
     mapping(address => Listing) public contractListings;
     mapping(address => bool) public isListingActive;
+    mapping(address => Offer) public contractOffers;
 
     // Events
     event ContractListed(
@@ -28,6 +34,17 @@ contract ContractOwnershipMarket is Ownable {
         address indexed buyer,
         uint256 price
     );
+    event OfferMade(
+        address indexed contractAddress,
+        address indexed offerer,
+        uint256 offerPrice
+    );
+    event OfferAccepted(
+        address indexed contractAddress,
+        address indexed offerer,
+        uint256 offerPrice
+    );
+    event OfferCanceled(address indexed contractAddress, address indexed offerer);
     constructor(address initialOwner) Ownable(initialOwner) {}
 
     function listContractForSale(
@@ -96,5 +113,43 @@ contract ContractOwnershipMarket is Ownable {
         delete contractListings[_contract];
         delete isListingActive[_contract];
         emit ContractPurchased(_contract, msg.sender, info.price);
+    }
+
+    function makeOffer(address _contract, uint256 _offerPrice) external {
+        require(isListingActive[_contract], "Contract listing is not active");
+
+        contractOffers[_contract] = Offer(msg.sender, _offerPrice);
+        emit OfferMade(_contract, msg.sender, _offerPrice);
+    }
+
+    function acceptOffer(address _contract) external {
+        require(
+            contractListings[_contract].owner == msg.sender,
+            "Only the listing owner can accept an offer"
+        );
+
+        Offer memory offer = contractOffers[_contract];
+        require(offer.offerer != address(0), "No offer to accept");
+
+        require(
+            IERC20(contractListings[_contract].token).transferFrom(offer.offerer, msg.sender, offer.offerPrice),
+            "Token transfer failed"
+        );
+
+        Ownable(_contract).transferOwnership(offer.offerer);
+
+        // Clean up the listing and offer
+        delete contractListings[_contract];
+        delete isListingActive[_contract];
+        delete contractOffers[_contract];
+        emit OfferAccepted(_contract, offer.offerer, offer.offerPrice);
+    }
+
+    function cancelOffer(address _contract) external {
+        Offer memory offer = contractOffers[_contract];
+        require(offer.offerer == msg.sender, "Only the offerer can cancel the offer");
+
+        delete contractOffers[_contract];
+        emit OfferCanceled(_contract, msg.sender);
     }
 }

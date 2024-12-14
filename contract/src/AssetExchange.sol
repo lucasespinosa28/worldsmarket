@@ -42,6 +42,7 @@ contract AssetExchange is ERC1155Holder {
     event OfferCanceled(uint256 indexed offerId, address indexed offerer);
     event OfferUpdated(uint256 indexed offerId, address indexed offerer);
     event OfferAccepted(uint256 indexed offerId, uint256 indexed boxId, address indexed boxOwner);
+    
     function getNFTInfos(
         uint256 _boxId
     ) external view returns (NFTInfo[] memory) {
