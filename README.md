@@ -1,5 +1,6 @@
 # Contract Ownership Marketplace
 ## [Demo website](https://worldsmarket.vercel.app/)
+## [Contract](https://explorer-sepolia.shape.network/address/0xbdF2124e85Df1df6Fc5a857556071633D9cc7019?tab=internal_txns)
 This project implements a marketplace for buying and selling ownership of smart contracts. It consists of a smart contract (`ContractOwnershipMarket`) and a web interface built with Next.js and the Alchemy Account Kit.
 
 ## Smart Contract
