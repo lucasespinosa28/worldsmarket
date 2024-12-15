@@ -21,10 +21,12 @@ The `ContractOwnershipMarket` smart contract allows users to list their smart co
 The web interface provides a user-friendly way to interact with the `ContractOwnershipMarket` contract. Key features include:
 
 1. **Listing Contracts**: Users can list their contracts for sale by providing contract details, price, and additional information like name, website, and description.
+![worldsmarket vercel app_listing](https://github.com/user-attachments/assets/bf4ec79f-6b7f-40cc-b221-d2a38efcf9da)
 
 2. **Browsing Listings**: Users can view all listed contracts and their details.
 
 3. **Purchasing Contracts**: Users can purchase listed contracts directly through the interface.
+![worldsmarket vercel app_exchange_0xe77b8933d5bba5f44e23c6ae91879eb6c2a3017c](https://github.com/user-attachments/assets/282a6f84-83b3-46e9-b46b-58aa3bb07d95)
 
 4. **Account Management**: Utilizes Alchemy's Account Kit for seamless account creation and management.
 
