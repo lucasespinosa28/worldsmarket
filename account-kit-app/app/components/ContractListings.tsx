@@ -1,158 +1,36 @@
-import { useSendUserOperation, useSmartAccountClient } from '@account-kit/react';
-import { useEffect, useState } from 'react';
-import { encodeFunctionData, formatEther, parseAbi } from 'viem';
+import { useContractListings } from '../hooks/useContractListings';
+import { useContractPurchases } from '../hooks/useContractPurchases';
+import ContractCard from './ContractCard';
 
-const ContractOwnershipMarket = {
-    abi: parseAbi(["function purchaseListedContract(address)", "function cancelContractListing(address)"]),
-    address: process.env.NEXT_PUBLIC_CONTRACTOWNERSHIPMARKET,
-}
+export default function ContractListings({ text = 'Contract Listings' }: { text?: string }) {
+    const { listings, loading: listingsLoading, error: listingsError } = useContractListings();
+    const { purchases, loading: purchasesLoading, error: purchasesError } = useContractPurchases();
 
-const erc20 = {
-    abi: parseAbi(["function approve(address, uint256)"]),
-}
-interface ContractListing {
-    id: string;
-    contractAddress: string;
-    owner: string;
-    token: string;
-    price: string;
-    blockTimestamp: string;
-}
-
-const QUERY = `
-  query GetContractListings {
-    contractListeds(skip: 0, first: 100) {
-      id
-      contractAddress
-      owner
-      token
-      price
-      blockTimestamp
+    if (listingsLoading || purchasesLoading) {
+        return <p className="text-center text-gray-600 text-lg font-semibold my-4">Loading...</p>;
     }
-  }
-`;
 
-export default function ContractListings() {
-    const [listings, setListings] = useState<ContractListing[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    if (listingsError || purchasesError) {
+        return <p className="text-center text-red-600 text-lg font-semibold my-4">Error: {listingsError || purchasesError}</p>;
+    }
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await fetch(process.env.NEXT_PUBLIC_SUBGRAPH_ONTRACTOWNERSHIPMARKET as string, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: QUERY }),
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const json = await response.json();
-                setListings(json.data.contractListeds);
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching data:', err);
-                setError('Failed to fetch listings');
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, []);
-
-    const { client } = useSmartAccountClient({ type: "LightAccount" });
-
-    const { sendUserOperation, isSendingUserOperation } = useSendUserOperation({
-        client,
-        waitForTxn: true,
-        onSuccess: ({ hash, request }) => {
-            console.log("Transaction sent successfully:", hash, request);
-        },
-        onError: (error) => {
-            console.error("Error sending UO:", error);
-        },
-    });
-
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
+    // Filter out listings that have been purchased
+    const availableListings = listings.filter(listing => 
+        !purchases.some(purchase => purchase.contractAddress === listing.contractAddress)
+    );
 
     return (
-        <div>
-            <h2>Contract Listings</h2>
-            <ul>
-                {listings.map((listing) => (
-                    <li key={listing.id}>
-                        <p>Contract Address: {listing.contractAddress}</p>
-                        <p>Owner: {listing.owner}</p>
-                        <p>Token: {listing.token}</p>
-                        <p>Price: {formatEther(BigInt(listing.price))}</p>
-                        <p>Timestamp: {new Date(parseInt(listing.blockTimestamp) * 1000).toLocaleString()}</p>
-                        <button
-                            className={`
-                                bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
-                                focus:outline-none focus:shadow-outline mb-4 mr-2
-                            `}
-                            onClick={() => {
-                                if (!client) return;
-                                sendUserOperation({
-                                    uo: [
-                                        {
-                                            target: listing.token as `0x${string}`,
-                                            data: encodeFunctionData({
-                                                abi: erc20.abi,
-                                                functionName: "approve",
-                                                args: [ContractOwnershipMarket.address as `0x${string}`, BigInt(listing.price)],
-                                            }),
-                                        },
-                                        {
-                                            target: ContractOwnershipMarket.address as `0x${string}`,
-                                            data: encodeFunctionData({
-                                                abi: ContractOwnershipMarket.abi,
-                                                functionName: "purchaseListedContract",
-                                                args: [listing.contractAddress as `0x${string}`],
-                                            }),
-                                        },
-                                    ],
-                                })
-                            }}
-                            disabled={isSendingUserOperation}
-                        >
-                            {isSendingUserOperation ? "Buying..." : "Buy contract"}
-                        </button>
-                        {client?.account.address === listing.owner && (
-                            <button
-                                className={`
-                                    bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded
-                                    focus:outline-none focus:shadow-outline mb-4
-                                `}
-                                onClick={() => {
-                                    if (!client) return;
-                                    sendUserOperation({
-                                        uo: [
-                                            {
-                                                target: ContractOwnershipMarket.address as `0x${string}`,
-                                                data: encodeFunctionData({
-                                                    abi: ContractOwnershipMarket.abi,
-                                                    functionName: "cancelContractListing",
-                                                    args: [listing.contractAddress as `0x${string}`],
-                                                }),
-                                            },
-                                        ],
-                                    })
-                                }}
-                                disabled={isSendingUserOperation}
-                            >
-                                {isSendingUserOperation ? "Canceling..." : "Cancel listing"}
-                            </button>
-                        )}
-                    </li>
-                ))}
-            </ul>
+        <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-bold mt-8 mb-4">{text}</h2>
+            {availableListings.length === 0 ? (
+                <p className="text-center text-gray-600 text-lg my-4">No contracts available for sale.</p>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableListings.map((listing) => (
+                        <ContractCard key={listing.id} listing={listing} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

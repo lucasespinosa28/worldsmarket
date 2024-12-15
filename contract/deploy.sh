@@ -14,7 +14,7 @@ graph init --from-contract 0xbdF2124e85Df1df6Fc5a857556071633D9cc7019 --network 
 graph init --from-contract 0x0680d7a6cBf31377063c5EEB99d1615b3a454483 --network shape-sepolia --abi ./abis/AssetExchange.json asset-exchange
 //subgraph/abis/ContractOwnershipMarket.json
 
-graph deploy asset-exchange \
+graph deploy contract_ownership_market \
   --version-label v0.0.1 \
   --node https://subgraphs.alchemy.com/api/subgraphs/deploy \
   --deploy-key Q2KlOU4jbLyS6 \

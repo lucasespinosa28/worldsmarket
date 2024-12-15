@@ -1,7 +1,5 @@
 import { parseAbi } from "viem";
 import MintFakecoin from "./MintFakecoin";
-import MintPotion from "./MintPotion";
-import MintWeapon from "./MintWeapon";
 import MintCounter from "./MintCounter";
 
 const fakecoin = {
@@ -21,10 +19,7 @@ const Weapon = {
 
 export default function Facuet(){
     return (<div>
-        <h1>Facuet</h1>
         <MintFakecoin />
-        <MintPotion />
-        <MintWeapon />
         <MintCounter />
     </div>)
 }

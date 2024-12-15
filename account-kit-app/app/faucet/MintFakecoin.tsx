@@ -23,7 +23,7 @@ export default function MintFakecoin() {
     });
     return (<div>
         <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold mb-4 py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             onClick={() => {
                 if (!client) return;
                 const mintData = encodeFunctionData({

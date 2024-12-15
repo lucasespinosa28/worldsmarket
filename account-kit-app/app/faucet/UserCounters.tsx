@@ -31,6 +31,7 @@ export default function UserCounters({ address }: UserCountersProps) {
                     args: [address],
                 });
                 setData(result as bigint[]);
+                console.log("Fetched counters:", result);
             } catch (error) {
                 console.error("Error fetching counters:", error);
                 setIsError(true);
